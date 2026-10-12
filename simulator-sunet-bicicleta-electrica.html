@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulator sunet vehicul electric</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap">
+<style>
+:root{--bg:#eef2f8;--card:#fff;--tx:#0f1b2d;--mu:#56657f;--ac:#1f5eff;--acx:#fff;--br:#e5484d;--wa:#f0a000;--ln:#d6deec;--track:#e1e8f4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--card:#161f2f;--tx:#e8eefb;--mu:#92a1bd;--ac:#5b9dff;--acx:#06122b;--br:#ff6b70;--wa:#ffb020;--ln:#26334a;--track:#202b40}}
+:root[data-theme="dark"]{--bg:#0e1420;--card:#161f2f;--tx:#e8eefb;--mu:#92a1bd;--ac:#5b9dff;--acx:#06122b;--br:#ff6b70;--wa:#ffb020;--ln:#26334a;--track:#202b40}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;justify-content:center;padding:20px 14px 28px}
+main{width:100%;max-width:520px;display:grid;gap:14px;align-content:start}
+h1{font:700 30px/1.1 Rajdhani,system-ui,sans-serif;margin:0}
+.sub{margin:6px 0 0;color:var(--mu);font-size:14px}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:18px;padding:16px}
+.seg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:8px}
+.seg button{padding:10px 3px;border-radius:12px;border:1px solid transparent;background:transparent;font-weight:600;font-size:13px}
+.seg button[aria-pressed=true]{background:var(--ac);color:var(--acx)}
+.pw{width:100%;padding:14px;border-radius:14px;border:0;background:var(--ac);color:var(--acx);font:700 20px Rajdhani,system-ui}
+.pw.on{background:transparent;color:var(--tx);border:1px solid var(--ln)}
+#ui{display:grid;gap:14px}
+#ui.off{opacity:.45;pointer-events:none}
+.speed{display:flex;align-items:baseline;gap:8px}
+.speed b{font:700 84px/1 Rajdhani,system-ui;font-variant-numeric:tabular-nums}
+.speed span{color:var(--mu)}
+.speed .st{margin-left:auto;font-size:13px;border:1px solid var(--ln);border-radius:99px;padding:2px 10px}
+.lbl{font-size:13px;color:var(--mu);margin-top:12px;display:flex;justify-content:space-between}
+.bar{height:10px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;width:0;background:var(--ac)}
+.bar.p i{background:var(--wa)}
+.acc,.row button{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.acc{width:100%;height:130px;border-radius:26px;border:0;background:var(--ac);color:var(--acx);font:700 30px Rajdhani,system-ui}
+.acc small{display:block;font:500 13px system-ui;opacity:.8}
+.acc.down{filter:brightness(.82)}
+.row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.row button{height:64px;border-radius:14px;border:1px solid var(--ln);background:var(--card);font-weight:700}
+.row .down{background:var(--wa);color:#111;border-color:var(--wa)}
+.row .brk.down{background:var(--br);color:#fff;border-color:var(--br)}
+.row .sig.down{animation:blk 1s steps(1,end) infinite}
+@keyframes blk{50%{opacity:.4}}
+.stage{overflow:hidden}
+.veh{width:100%;display:block}
+.vwrap{animation:bob .5s ease-in-out infinite;animation-play-state:paused}
+#stage.run .vwrap{animation-play-state:running}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.wheel{transform-box:fill-box;transform-origin:center;animation:spin var(--spd-dur,1s) linear infinite;animation-play-state:paused}
+#stage.run .wheel{animation-play-state:running}
+@keyframes spin{to{transform:rotate(360deg)}}
+.road{height:9px;border-radius:5px;margin-top:8px;background:repeating-linear-gradient(90deg,var(--mu) 0 16px,transparent 16px 38px);opacity:.5;animation:roll var(--spd-dur,1s) linear infinite;animation-play-state:paused}
+#stage.run .road{animation-play-state:running}
+@keyframes roll{to{background-position:-38px 0}}
+.croad{stroke:var(--ln);stroke-width:8;stroke-linecap:round;fill:none}
+.mbldg{fill:var(--ln)}
+.citymap{width:100%;display:block;margin-top:10px}
+.pin{offset-path:path('M34,16 L246,16 A14,14 0 0 1 260,30 L260,100 A14,14 0 0 1 246,114 L34,114 A14,14 0 0 1 20,100 L20,30 A14,14 0 0 1 34,16 Z');animation:drive var(--map-dur,9s) linear infinite;animation-play-state:paused}
+#stage.run .pin{animation-play-state:running}
+@keyframes drive{to{offset-distance:100%}}
+@media (prefers-reduced-motion:reduce){.wheel,.road,.vwrap,.pin{animation:none}}
+.tune{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tune button{padding:12px 4px;border-radius:14px;border:1px solid var(--ln);background:var(--bg);font-weight:600;font-size:12px;text-align:center}
+.tune button[aria-pressed=true]{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.tune button small{display:block;font-weight:500;opacity:.75;margin-top:3px}
+.dealHead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:14px}
+.dealHead b{font:700 20px Rajdhani,system-ui;color:var(--ac)}
+.dealHint{color:var(--mu);font-size:11px}
+.dealGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.dealGrid button{padding:10px 6px;border-radius:14px;border:1px solid var(--ln);background:var(--bg);font-weight:700;font-size:13px;text-align:center}
+.dealGrid button small{display:block;font-weight:500;color:var(--mu);margin-top:2px}
+.dealGrid button[aria-pressed=true]{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.dealGrid button[aria-pressed=true] small{color:var(--acx);opacity:.85}
+.opts{display:grid;gap:12px}
+.opt{display:flex;align-items:center;gap:10px;font-size:14px}
+input[type=range]{flex:1;accent-color:var(--ac)}
+.hint{font-size:12px;color:var(--mu);text-align:center;margin:0}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Simulator sunet vehicul electric</h1><p class="sub">Sunet de motor, AVAS, claxon și sonerie, sintetizate direct în browser. Folosește boxe sau căști.</p></header>
+<button class="pw" id="pw">Pornește motorul</button>
+<div id="ui" class="off">
+<div class="card seg" id="seg"><button aria-pressed="true">🚲 E-bike</button><button aria-pressed="false">🛵 Scuter</button><button aria-pressed="false">🏍️ Moto</button><button aria-pressed="false">⚡ Electrică</button><button aria-pressed="false">⛽ Diesel</button></div>
+<div class="card stage" id="stage">
+<svg width="0" height="0" style="position:absolute"><defs><g id="whl"><circle r="15" fill="var(--card)" stroke="var(--ac)" stroke-width="5"/><line y2="-12" stroke="var(--ac)" stroke-width="4" stroke-linecap="round"/></g></defs></svg>
+<div class="vwrap">
+<svg class="veh" viewBox="0 0 240 110">
+<path d="M55,85 L108,40 M108,40 L150,40 M150,40 L100,68 M100,68 L55,85 M108,40 L100,68 M150,40 L185,85" fill="none" stroke="var(--tx)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="108" y1="40" x2="118" y2="34" stroke="var(--tx)" stroke-width="6" stroke-linecap="round"/>
+<line x1="150" y1="40" x2="160" y2="24" stroke="var(--tx)" stroke-width="6" stroke-linecap="round"/>
+<g transform="translate(55,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(185,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+<svg class="veh" viewBox="0 0 240 110" style="display:none">
+<path d="M62,85 L62,62 L100,55 L100,72 L150,72 L150,45 L165,28 L178,85 M165,28 L176,26" fill="none" stroke="var(--tx)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="translate(62,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(178,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+<svg class="veh" viewBox="0 0 240 110" style="display:none">
+<path d="M58,85 L75,55 L110,50 L110,65 L140,65 L140,50 L160,38 L182,85" fill="none" stroke="var(--tx)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="translate(58,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(182,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+<svg class="veh" viewBox="0 0 240 110" style="display:none">
+<path d="M35,90 L35,76 L72,46 L168,46 L200,76 L200,90 Z" fill="var(--tx)"/>
+<g transform="translate(70,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(170,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+<svg class="veh" viewBox="0 0 240 110" style="display:none">
+<path d="M35,90 L35,76 L72,46 L168,46 L200,76 L200,90 Z" fill="var(--tx)"/>
+<g transform="translate(70,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(170,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+<svg class="veh" viewBox="0 0 240 110" style="display:none">
+<path d="M35,90 L35,76 L72,46 L168,46 L200,76 L200,90 Z" fill="#3b6ea5"/>
+<g transform="translate(70,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(170,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+<svg class="veh" viewBox="0 0 240 110" style="display:none">
+<path d="M35,90 L35,76 L72,46 L168,46 L200,76 L200,90 Z" fill="#2e8b57"/>
+<g transform="translate(70,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(170,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+<svg class="veh" viewBox="0 0 240 110" style="display:none">
+<path d="M35,90 L35,76 L72,46 L168,46 L200,76 L200,90 Z" fill="#4a4a52"/>
+<g transform="translate(70,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(170,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+<svg class="veh" viewBox="0 0 240 110" style="display:none">
+<path d="M35,90 L35,76 L72,46 L168,46 L200,76 L200,90 Z" fill="#c9a227"/>
+<g transform="translate(70,85)"><use href="#whl" class="wheel"/></g>
+<g transform="translate(170,85)"><use href="#whl" class="wheel"/></g>
+</svg>
+</div>
+<div class="road"></div>
+<svg class="citymap" viewBox="0 0 280 130">
+<path class="croad" d="M34,16 L246,16 A14,14 0 0 1 260,30 L260,100 A14,14 0 0 1 246,114 L34,114 A14,14 0 0 1 20,100 L20,30 A14,14 0 0 1 34,16 Z"/>
+<rect class="mbldg" x="52" y="38" width="78" height="48" rx="3"/>
+<rect class="mbldg" x="150" y="38" width="78" height="48" rx="3"/>
+<circle class="pin" r="6" fill="var(--ac)"/>
+</svg>
+</div>
+<div class="card">
+<div class="speed"><b id="spd">0</b><span>km/h</span><span class="st" id="st">Motor oprit</span></div>
+<div class="lbl"><span>Viteză</span><span id="mx">max 25 km/h</span></div><div class="bar"><i id="bs"></i></div>
+<div class="lbl"><span>Putere consumată</span></div><div class="bar p"><i id="bp"></i></div>
+</div>
+<button class="acc" id="acc">Accelerație<small>ține apăsat</small></button>
+<div class="row"><button class="brk" id="brk">Frână</button><button id="horn">Claxon</button><button id="bell">Sonerie</button><button class="sig" id="sig">Semnalizare</button></div>
+<div class="card tune" id="tune">
+<button aria-pressed="false">🔧 Turbo<small>+18% viteză</small></button>
+<button aria-pressed="false">⚙️ Chip ECU<small>+22% accelerație</small></button>
+<button aria-pressed="false">🛑 Frâne sport<small>+15% frânare</small></button>
+</div>
+<div class="card deal">
+<div class="dealHead"><span>💰 <b id="bani">0</b> Bani</span><span class="dealHint">câștigi mergând cu motorul pornit</span></div>
+<div class="dealGrid" id="dealGrid">
+<button aria-pressed="false">Volkswagen<small>400 Bani</small></button>
+<button aria-pressed="false">Škoda<small>250 Bani</small></button>
+<button aria-pressed="false">Ford<small>600 Bani</small></button>
+<button aria-pressed="false">Bugatti<small>4000 Bani</small></button>
+</div>
+</div>
+<div class="card opts">
+<label class="opt"><input type="checkbox" id="avas" checked> AVAS: sunet de avertizare pentru pietoni, sub 20 km/h</label>
+<label class="opt">Volum <input type="range" id="vol" min="0" max="100" value="70"></label>
+</div>
+</div>
+<p class="hint">Tastatură: Spațiu sau ↑ accelerație, ↓ frână, H claxon, S sonerie, I semnalizare</p>
+</main>
+<script>
+const P=[
+{max:25,f0:110,wh:900,hf:5200,up:6,br:12,cs:1,wave:'sine'},
+{max:45,f0:90,wh:700,hf:4200,up:9,br:16,cs:1.5,tex:.05},
+{max:100,f0:75,wh:550,hf:3600,up:16,br:28,cs:2.5,tex:.18},
+{max:180,f0:55,wh:420,hf:3000,up:22,br:30,cs:3.5},
+{max:170,f0:42,wh:480,hf:0,up:16,br:25,cs:3.2,diesel:1,tex:1},
+{max:175,f0:52,wh:410,hf:2900,up:20,br:28,cs:3.3,tex:.2},
+{max:165,f0:54,wh:430,hf:2700,up:18,br:26,cs:3.4,wave:'triangle',tex:.15},
+{max:195,f0:48,wh:400,hf:3300,up:26,br:30,cs:3.2,wave:'square',tex:.35},
+{max:420,f0:30,wh:340,hf:5200,up:55,br:42,cs:2.6,tex:.12}];
+const RATE=200;
+let cur=0,speed=0,thr=0,acc=false,brk=false,on=false,avas=true,vol=.7,ctx,A={},horn=null,last=0,raf=0,bani=0;
+let tune=[{t:0,e:0,b:0},{t:0,e:0,b:0},{t:0,e:0,b:0},{t:0,e:0,b:0},{t:0,e:0,b:0}],owned=[1,1,1,1,1,0,0,0,0];
+const $=id=>document.getElementById(id);
+const stage=$('stage'),vehs=[...document.querySelectorAll('.veh')];
+function stats(){const p=P[cur],tn=tune[cur];return{...p,max:p.max*(1+tn.t*.18),up:p.up*(1+tn.e*.22),br:p.br*(1+tn.b*.15)};}
+
+function initAudio(){
+ ctx=new (window.AudioContext||window.webkitAudioContext)();
+ const comp=ctx.createDynamicsCompressor();comp.connect(ctx.destination);
+ const osc=t=>{const o=ctx.createOscillator();o.type=t;o.start();return o};
+ const gain=(v,to)=>{const g=ctx.createGain();g.gain.value=v;if(to)g.connect(to);return g};
+ A.master=gain(vol,comp);
+ A.hum=osc('sawtooth');A.humF=ctx.createBiquadFilter();A.humF.type='lowpass';A.humF.Q.value=3;
+ A.humG=gain(0,A.master);A.hum.connect(A.humF);A.humF.connect(A.humG);
+ A.wh=osc('triangle');A.whG=gain(0,A.master);A.wh.connect(A.whG);
+ A.hf=osc('sine');A.hfG=gain(0,A.master);A.hf.connect(A.hfG);
+ const b=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),d=b.getChannelData(0);
+ for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+ const ns=ctx.createBufferSource();ns.buffer=b;ns.loop=true;ns.start();
+ A.wF=ctx.createBiquadFilter();A.wF.type='bandpass';A.wF.Q.value=.7;A.wG=gain(0,A.master);
+ ns.connect(A.wF);A.wF.connect(A.wG);
+ const rF=ctx.createBiquadFilter();rF.type='lowpass';rF.frequency.value=380;A.rG=gain(0,A.master);
+ ns.connect(rF);rF.connect(A.rG);
+ A.a1=osc('sine');A.a2=osc('triangle');
+ const trem=gain(.7),lfo=osc('sine'),la=gain(.3);
+ lfo.frequency.value=5;lfo.connect(la);la.connect(trem.gain);
+ A.aG=gain(0,A.master);A.a1.connect(trem);A.a2.connect(trem);trem.connect(A.aG);
+ A.dLfo=osc('square');A.dLfoG=gain(0);A.dLfo.connect(A.dLfoG);A.dLfoG.connect(A.humG.gain);
+}
+
+function sound(){
+ const t=ctx.currentTime,p=stats(),s=speed/p.max,isD=!!p.diesel;
+ const mv=Math.min(1,speed/1.2),dmv=Math.max(.32,mv);
+ const set=(prm,v)=>prm.setTargetAtTime(v,t,.05);
+ A.hum.type=p.wave||'sawtooth';
+ set(A.hum.frequency,p.f0*(1+(isD?1.6:3)*s));
+ set(A.humF.frequency,isD?950:250+1800*(.3+.7*thr)*(.4+s));
+ set(A.humG.gain,isD?.05*dmv*(.3+.7*thr):.09*mv*(.2+.8*thr));
+ set(A.dLfo.frequency,8+42*s+10*thr);
+ set(A.dLfoG.gain,(p.tex||0)*.045*(isD?dmv:mv)*(.3+.7*thr));
+ set(A.wh.frequency,p.wh*(.4+2.2*s));
+ set(A.whG.gain,.07*mv*(.25+.75*thr+(brk?.6:0)));
+ set(A.hf.frequency,p.hf*(1+s*.5));
+ set(A.hfG.gain,isD?0:.012*mv*thr);
+ set(A.wF.frequency,400+2400*s);
+ set(A.wG.gain,.22*s*s);
+ set(A.rG.gain,.12*s+(isD?.05*dmv:0));
+ set(A.a1.frequency,320+8*speed);set(A.a2.frequency,(320+8*speed)*1.5);
+ set(A.aG.gain,(avas&&!isD)?.09*Math.max(0,1-speed/20):0);
+}
+
+function render(){
+ const p=stats();
+ $('spd').textContent=Math.round(speed);
+ $('bs').style.width=(speed/p.max*100)+'%';
+ $('bp').style.width=(thr*100)+'%';
+ $('mx').textContent='max '+Math.round(p.max)+' km/h';
+ $('bani').textContent=Math.floor(bani);
+ $('st').textContent=!on?'Motor oprit':brk&&speed>.5?(p.diesel?'Frânare':'Frânare cu regenerare'):acc?'Accelerare':speed<.5?(p.diesel?'La ralanti':'Staționar'):'Mers liber';
+}
+
+function visuals(){
+ const q=Math.max(.03,speed/stats().max);
+ stage.style.setProperty('--spd-dur',(0.85/q).toFixed(2)+'s');
+ stage.style.setProperty('--map-dur',(7/q).toFixed(2)+'s');
+ stage.classList.toggle('run',on&&speed>0.4);
+}
+
+function loop(now){
+ if(!on)return;
+ const dt=Math.min(.05,(now-last)/1000);last=now;
+ const p=stats(),q=speed/p.max;
+ thr+=((acc?1:0)-thr)*Math.min(1,dt*7);
+ speed+=(thr*p.up*(1-.7*q*q)-p.cs*(.15+.85*q)-(brk?p.br:0))*dt;
+ speed=Math.max(0,Math.min(p.max,speed));
+ if(speed>1)bani+=speed*dt/3600*RATE;
+ sound();render();visuals();
+ raf=requestAnimationFrame(loop);
+}
+
+function power(v){
+ on=v;cancelAnimationFrame(raf);
+ if(v){if(!ctx)initAudio();ctx.resume();last=performance.now();raf=requestAnimationFrame(loop)}
+ else{setAcc(false);setBrk(false);hornOff();sigStop();speed=0;thr=0;stage.classList.remove('run');
+  if(ctx){[A.humG,A.whG,A.hfG,A.wG,A.rG,A.aG].forEach(g=>g.gain.value=0);ctx.suspend()}}
+ $('pw').textContent=v?'Oprește motorul':'Pornește motorul';
+ $('pw').classList.toggle('on',v);$('ui').classList.toggle('off',!v);render();
+}
+
+function hornOn(){
+ if(!on||horn)return;
+ const t=ctx.currentTime,g=ctx.createGain(),f=ctx.createBiquadFilter();
+ f.type='lowpass';f.frequency.value=2200;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.14,t+.02);
+ const os=[430,540].map(fr=>{const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=fr;o.connect(f);o.start();return o});
+ f.connect(g);g.connect(A.master);horn={g,os};$('horn').classList.add('down');
+}
+function hornOff(){
+ if(!horn)return;
+ const t=ctx.currentTime;horn.g.gain.setTargetAtTime(0,t,.03);
+ horn.os.forEach(o=>o.stop(t+.25));horn=null;$('horn').classList.remove('down');
+}
+function ding(d){
+ const t=ctx.currentTime+d;
+ [2637,3520,5274].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();
+  o.frequency.value=f;g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.16/(i+1),t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+1.2);
+  o.connect(g);g.connect(A.master);o.start(t);o.stop(t+1.3)});
+}
+const bell=()=>{if(on){ding(0);ding(.15)}};
+const setAcc=v=>{acc=v;$('acc').classList.toggle('down',v)};
+const setBrk=v=>{brk=v;$('brk').classList.toggle('down',v)};
+
+let sigOn=false,sigT=null;
+function tick(hi){
+ const t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();
+ o.type='square';o.frequency.value=hi?1500:1100;f.type='lowpass';f.frequency.value=3200;
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.1,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.045);
+ o.connect(f);f.connect(g);g.connect(A.master);o.start(t);o.stop(t+.06);
+}
+function sigStop(){sigOn=false;$('sig').classList.remove('down');clearInterval(sigT);sigT=null}
+function sigToggle(){
+ if(!on)return;
+ if(sigOn){sigStop();return}
+ sigOn=true;$('sig').classList.add('down');
+ let hi=true;tick(hi);sigT=setInterval(()=>{hi=!hi;tick(hi)},350);
+}
+
+function hold(el,start,stop){
+ el.addEventListener('pointerdown',e=>{e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}start()});
+ ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,stop));
+ el.addEventListener('contextmenu',e=>e.preventDefault());
+}
+hold($('acc'),()=>setAcc(true),()=>setAcc(false));
+hold($('brk'),()=>setBrk(true),()=>setBrk(false));
+hold($('horn'),hornOn,hornOff);
+$('bell').addEventListener('click',bell);
+$('sig').addEventListener('click',sigToggle);
+
+const presets=[...document.querySelectorAll('#seg button')];
+presets.forEach((b,i)=>b.addEventListener('click',()=>{
+ cur=i;presets.forEach((x,j)=>x.setAttribute('aria-pressed',j===i));
+ vehs.forEach((v,j)=>v.style.display=j===i?'block':'none');
+ speed=Math.min(speed,stats().max);syncTune();updateDeal();render()}));
+const tuneBtns=[...document.querySelectorAll('#tune button')],tuneKeys=['t','e','b'];
+function syncTune(){tuneBtns.forEach((b,i)=>b.setAttribute('aria-pressed',!!tune[cur][tuneKeys[i]]));}
+tuneBtns.forEach((b,i)=>b.addEventListener('click',()=>{
+ const k=tuneKeys[i];tune[cur][k]=tune[cur][k]?0:1;syncTune();speed=Math.min(speed,stats().max);render();
+}));
+syncTune();
+const dealBtns=[...document.querySelectorAll('#dealGrid button')],PRICES=[400,250,600,4000],NAMES=['Volkswagen','Škoda','Ford','Bugatti'];
+function updateDeal(){
+ dealBtns.forEach((b,i)=>{const idx=5+i,ow=owned[idx];
+  b.setAttribute('aria-pressed',cur===idx?'true':'false');
+  b.innerHTML=NAMES[i]+'<small>'+(ow?'deținut':PRICES[i]+' Bani')+'</small>';});
+}
+dealBtns.forEach((b,i)=>b.addEventListener('click',()=>{
+ const idx=5+i;
+ if(!owned[idx]){if(bani<PRICES[i])return;bani-=PRICES[i];owned[idx]=1;}
+ cur=idx;presets.forEach(x=>x.setAttribute('aria-pressed','false'));
+ vehs.forEach((v,j)=>v.style.display=j===idx?'block':'none');
+ speed=Math.min(speed,stats().max);syncTune();updateDeal();render();
+}));
+updateDeal();
+$('avas').addEventListener('change',e=>{avas=e.target.checked});
+$('vol').addEventListener('input',e=>{vol=e.target.value/100;if(A.master)A.master.gain.setTargetAtTime(vol,ctx.currentTime,.02)});
+$('pw').addEventListener('click',()=>{power(!on);$('pw').blur()});
+
+addEventListener('keydown',e=>{
+ if(!on)return;const k=e.key.toLowerCase();
+ if(k===' '||k==='arrowup'){setAcc(true);e.preventDefault()}
+ else if(k==='arrowdown'){setBrk(true);e.preventDefault()}
+ else if(k==='h'&&!e.repeat)hornOn();
+ else if(k==='s'&&!e.repeat)bell();
+ else if(k==='i'&&!e.repeat)sigToggle();
+});
+addEventListener('keyup',e=>{
+ const k=e.key.toLowerCase();
+ if(k===' '||k==='arrowup'){setAcc(false);e.preventDefault()}
+ else if(k==='arrowdown')setBrk(false);
+ else if(k==='h')hornOff();
+});
+addEventListener('blur',()=>{setAcc(false);setBrk(false);hornOff();sigStop()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&on)power(false)});
+addEventListener('pagehide',()=>{if(on)power(false)});
+render();
+</script>
+</body>
+</html>
